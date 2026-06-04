@@ -3,20 +3,40 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: OneWorld Van Lines API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: leads
+    description: Lead management
+  - name: estimates
+    description: Moving estimates/calculator
+  - name: workers
+    description: Worker management
+  - name: jobs
+    description: Job assignments
+  - name: blog
+    description: Blog content
+  - name: faqs
+    description: FAQ content
+  - name: documents
+    description: Document management
+  - name: pricing
+    description: Pricing configuration
+  - name: messages
+    description: Customer messages
+  - name: dashboard
+    description: Admin dashboard summaries
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +44,857 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # LEADS
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List all leads
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: source
+          in: query
+          schema:
+            type: string
+        - name: assignedWorkerId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  leads:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Lead"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                required: [leads, total, page, limit]
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create a new lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeadBody"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get a lead by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLeadBody"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    delete:
+      operationId: deleteLead
+      tags: [leads]
+      summary: Delete a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /leads/{id}/notes:
+    post:
+      operationId: addLeadNote
+      tags: [leads]
+      summary: Add a note to a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddNoteBody"
+      responses:
+        "201":
+          description: Note added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadNote"
+
+  /leads/{id}/assign:
+    post:
+      operationId: assignLead
+      tags: [leads]
+      summary: Assign lead to a worker
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: integer
+              required: [workerId]
+      responses:
+        "200":
+          description: Lead assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  # ESTIMATES / CALCULATOR
+  /estimates:
+    post:
+      operationId: createEstimate
+      tags: [estimates]
+      summary: Calculate a moving estimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEstimateBody"
+      responses:
+        "201":
+          description: Estimate calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estimate"
+    get:
+      operationId: listEstimates
+      tags: [estimates]
+      summary: List estimates
+      responses:
+        "200":
+          description: List of estimates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Estimate"
+
+  /estimates/{id}:
+    get:
+      operationId: getEstimate
+      tags: [estimates]
+      summary: Get estimate by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estimate"
+
+  # WORKERS
+  /workers:
+    get:
+      operationId: listWorkers
+      tags: [workers]
+      summary: List all workers
+      responses:
+        "200":
+          description: List of workers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Worker"
+    post:
+      operationId: createWorker
+      tags: [workers]
+      summary: Create a worker account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkerBody"
+      responses:
+        "201":
+          description: Worker created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+
+  /workers/{id}:
+    get:
+      operationId: getWorker
+      tags: [workers]
+      summary: Get worker by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Worker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+    patch:
+      operationId: updateWorker
+      tags: [workers]
+      summary: Update a worker
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkerBody"
+      responses:
+        "200":
+          description: Updated worker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+    delete:
+      operationId: deleteWorker
+      tags: [workers]
+      summary: Delete a worker
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /workers/{id}/jobs:
+    get:
+      operationId: getWorkerJobs
+      tags: [workers]
+      summary: Get jobs assigned to a worker
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of jobs for this worker
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  # JOBS
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      summary: List all jobs
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: workerId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+    post:
+      operationId: createJob
+      tags: [jobs]
+      summary: Create a job from a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobBody"
+      responses:
+        "201":
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [jobs]
+      summary: Get job by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+    patch:
+      operationId: updateJobStatus
+      tags: [jobs]
+      summary: Update job status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [scheduled, on_the_way, arrived, picked_up, in_transit, dropped_off, completed, cancelled]
+                notes:
+                  type: string
+              required: [status]
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  # BLOG
+  /blog/posts:
+    get:
+      operationId: listBlogPosts
+      tags: [blog]
+      summary: List blog posts
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 12
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlogPost"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                required: [posts, total, page, limit]
+    post:
+      operationId: createBlogPost
+      tags: [blog]
+      summary: Create a blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogPostBody"
+      responses:
+        "201":
+          description: Blog post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/posts/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    patch:
+      operationId: updateBlogPost
+      tags: [blog]
+      summary: Update a blog post
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBlogPostBody"
+      responses:
+        "200":
+          description: Updated blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    delete:
+      operationId: deleteBlogPost
+      tags: [blog]
+      summary: Delete a blog post
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /blog/categories:
+    get:
+      operationId: listBlogCategories
+      tags: [blog]
+      summary: List blog categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogCategory"
+
+  # FAQS
+  /faqs:
+    get:
+      operationId: listFaqs
+      tags: [faqs]
+      summary: List FAQs
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Faq"
+    post:
+      operationId: createFaq
+      tags: [faqs]
+      summary: Create a FAQ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFaqBody"
+      responses:
+        "201":
+          description: FAQ created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Faq"
+
+  /faqs/{id}:
+    patch:
+      operationId: updateFaq
+      tags: [faqs]
+      summary: Update a FAQ
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFaqBody"
+      responses:
+        "200":
+          description: Updated FAQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Faq"
+    delete:
+      operationId: deleteFaq
+      tags: [faqs]
+      summary: Delete a FAQ
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # DOCUMENTS
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List documents
+      parameters:
+        - name: leadId
+          in: query
+          schema:
+            type: integer
+        - name: jobId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Store document metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDocumentBody"
+      responses:
+        "201":
+          description: Document stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # PRICING
+  /pricing/rules:
+    get:
+      operationId: listPricingRules
+      tags: [pricing]
+      summary: Get all pricing rules
+      responses:
+        "200":
+          description: Pricing rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingRules"
+    put:
+      operationId: updatePricingRules
+      tags: [pricing]
+      summary: Update pricing rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingRules"
+      responses:
+        "200":
+          description: Updated rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingRules"
+
+  # MESSAGES
+  /messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List messages for a lead
+      parameters:
+        - name: leadId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  # DASHBOARD SUMMARIES (wow endpoints)
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/recent-leads:
+    get:
+      operationId: getRecentLeads
+      tags: [dashboard]
+      summary: Get recent leads for dashboard
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+
+  /dashboard/lead-sources:
+    get:
+      operationId: getLeadSourceBreakdown
+      tags: [dashboard]
+      summary: Get lead counts by source
+      responses:
+        "200":
+          description: Lead source breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                    count:
+                      type: integer
+                  required: [source, count]
+
+  /dashboard/job-status-breakdown:
+    get:
+      operationId: getJobStatusBreakdown
+      tags: [dashboard]
+      summary: Get job counts by status
+      responses:
+        "200":
+          description: Job status breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                    count:
+                      type: integer
+                  required: [status, count]
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +902,627 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        moveFromAddress:
+          type: string
+        moveToAddress:
+          type: string
+        moveFromZip:
+          type: string
+        moveToZip:
+          type: string
+        moveDate:
+          type: string
+        flexibleDates:
+          type: boolean
+        houseSize:
+          type: string
+        bedroomCount:
+          type: integer
+        moveType:
+          type: string
+        additionalNotes:
+          type: string
+        status:
+          type: string
+          enum: [new, contacted, quoted, scheduled, completed, lost]
+        source:
+          type: string
+          enum: [website_form, calculator, phone, whatsapp, referral, other]
+        assignedWorkerId:
+          type: integer
+          nullable: true
+        estimatedCubicFeet:
+          type: number
+          nullable: true
+        priceLow:
+          type: number
+          nullable: true
+        priceHigh:
+          type: number
+          nullable: true
+        paymentStatus:
+          type: string
+          nullable: true
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeadNote"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, fullName, phone, email, status, source, createdAt, updatedAt]
+
+    CreateLeadBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        moveFromAddress:
+          type: string
+        moveToAddress:
+          type: string
+        moveFromZip:
+          type: string
+        moveToZip:
+          type: string
+        moveDate:
+          type: string
+        flexibleDates:
+          type: boolean
+        houseSize:
+          type: string
+        bedroomCount:
+          type: integer
+        moveType:
+          type: string
+        additionalNotes:
+          type: string
+        source:
+          type: string
+          enum: [website_form, calculator, phone, whatsapp, referral, other]
+        estimatedCubicFeet:
+          type: number
+        priceLow:
+          type: number
+        priceHigh:
+          type: number
+      required: [fullName, phone, email]
+
+    UpdateLeadBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, quoted, scheduled, completed, lost]
+        assignedWorkerId:
+          type: integer
+        paymentStatus:
+          type: string
+        priceLow:
+          type: number
+        priceHigh:
+          type: number
+        moveDate:
+          type: string
+        additionalNotes:
+          type: string
+
+    LeadNote:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+      required: [id, leadId, content, createdAt]
+
+    AddNoteBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required: [content]
+
+    Estimate:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+          nullable: true
+        bedroomCount:
+          type: integer
+        boxCount:
+          type: integer
+        hasPackingService:
+          type: boolean
+        hasStairs:
+          type: boolean
+        distanceZone:
+          type: string
+        isFlexibleDates:
+          type: boolean
+        specialItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialItem"
+        inventoryItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        totalCubicFeet:
+          type: number
+        priceLow:
+          type: number
+        priceHigh:
+          type: number
+        priceExplanation:
+          type: string
+        createdAt:
+          type: string
+      required: [id, bedroomCount, boxCount, totalCubicFeet, priceLow, priceHigh, priceExplanation, createdAt]
+
+    SpecialItem:
+      type: object
+      properties:
+        name:
+          type: string
+        cubicFeet:
+          type: number
+        quantity:
+          type: integer
+      required: [name, cubicFeet, quantity]
+
+    InventoryItem:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        cubicFeet:
+          type: number
+        quantity:
+          type: integer
+      required: [name, cubicFeet, quantity]
+
+    CreateEstimateBody:
+      type: object
+      properties:
+        leadId:
+          type: integer
+        bedroomCount:
+          type: integer
+        boxCount:
+          type: integer
+        hasPackingService:
+          type: boolean
+        hasStairs:
+          type: boolean
+        distanceZone:
+          type: string
+          enum: [local, mid_range, long_distance]
+        isFlexibleDates:
+          type: boolean
+        specialItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialItem"
+        inventoryItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+      required: [bedroomCount, boxCount]
+
+    Worker:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [driver, mover, lead_worker, supervisor]
+        status:
+          type: string
+          enum: [active, inactive]
+        assignedJobCount:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, name, email, role, status, createdAt]
+
+    CreateWorkerBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [driver, mover, lead_worker, supervisor]
+      required: [name, email, role]
+
+    UpdateWorkerBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [driver, mover, lead_worker, supervisor]
+        status:
+          type: string
+          enum: [active, inactive]
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        workerId:
+          type: integer
+          nullable: true
+        workerName:
+          type: string
+          nullable: true
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        pickupAddress:
+          type: string
+        dropoffAddress:
+          type: string
+        moveDate:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, on_the_way, arrived, picked_up, in_transit, dropped_off, completed, cancelled]
+        notes:
+          type: string
+          nullable: true
+        priceLow:
+          type: number
+          nullable: true
+        priceHigh:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, leadId, customerName, customerPhone, pickupAddress, dropoffAddress, moveDate, status, createdAt, updatedAt]
+
+    CreateJobBody:
+      type: object
+      properties:
+        leadId:
+          type: integer
+        workerId:
+          type: integer
+        moveDate:
+          type: string
+        notes:
+          type: string
+      required: [leadId]
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImage:
+          type: string
+          nullable: true
+        isFeatured:
+          type: boolean
+        metaTitle:
+          type: string
+          nullable: true
+        metaDescription:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, slug, title, excerpt, content, category, tags, isFeatured, createdAt, updatedAt]
+
+    CreateBlogPostBody:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImage:
+          type: string
+        isFeatured:
+          type: boolean
+        metaTitle:
+          type: string
+        metaDescription:
+          type: string
+        publishedAt:
+          type: string
+      required: [slug, title, excerpt, content, category]
+
+    UpdateBlogPostBody:
+      type: object
+      properties:
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImage:
+          type: string
+        isFeatured:
+          type: boolean
+        metaTitle:
+          type: string
+        metaDescription:
+          type: string
+        publishedAt:
+          type: string
+
+    BlogCategory:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        postCount:
+          type: integer
+      required: [name, slug, postCount]
+
+    Faq:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        category:
+          type: string
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, question, answer, category, sortOrder, createdAt]
+
+    CreateFaqBody:
+      type: object
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        category:
+          type: string
+        sortOrder:
+          type: integer
+      required: [question, answer, category]
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+          nullable: true
+        jobId:
+          type: integer
+          nullable: true
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+        documentType:
+          type: string
+          enum: [move_agreement, inventory_sheet, authorization_form, payment_record, drivers_license, other]
+        uploadedAt:
+          type: string
+      required: [id, fileName, fileUrl, documentType, uploadedAt]
+
+    CreateDocumentBody:
+      type: object
+      properties:
+        leadId:
+          type: integer
+        jobId:
+          type: integer
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+        documentType:
+          type: string
+          enum: [move_agreement, inventory_sheet, authorization_form, payment_record, drivers_license, other]
+      required: [fileName, fileUrl, documentType]
+
+    PricingRules:
+      type: object
+      properties:
+        basePricePerCubicFoot:
+          type: number
+        localMultiplierLow:
+          type: number
+        localMultiplierHigh:
+          type: number
+        midRangeMultiplierLow:
+          type: number
+        midRangeMultiplierHigh:
+          type: number
+        longDistanceMultiplierLow:
+          type: number
+        longDistanceMultiplierHigh:
+          type: number
+        packingServiceFlatFee:
+          type: number
+        stairsSurchargePercent:
+          type: number
+        flexibleDiscountPercent:
+          type: number
+        bedroomCubicFeetEstimates:
+          type: object
+          additionalProperties:
+            type: number
+        boxCubicFeet:
+          type: number
+      required:
+        - basePricePerCubicFoot
+        - localMultiplierLow
+        - localMultiplierHigh
+        - midRangeMultiplierLow
+        - midRangeMultiplierHigh
+        - longDistanceMultiplierLow
+        - longDistanceMultiplierHigh
+        - packingServiceFlatFee
+        - stairsSurchargePercent
+        - flexibleDiscountPercent
+        - bedroomCubicFeetEstimates
+        - boxCubicFeet
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        channel:
+          type: string
+          enum: [whatsapp, sms, email]
+        content:
+          type: string
+        status:
+          type: string
+          enum: [sent, delivered, read, failed]
+        sentAt:
+          type: string
+      required: [id, leadId, direction, channel, content, status, sentAt]
+
+    SendMessageBody:
+      type: object
+      properties:
+        leadId:
+          type: integer
+        channel:
+          type: string
+          enum: [whatsapp, sms, email]
+        content:
+          type: string
+      required: [leadId, channel, content]
+
+    DashboardStats:
+      type: object
+      properties:
+        totalLeads:
+          type: integer
+        newLeadsToday:
+          type: integer
+        activeJobs:
+          type: integer
+        completedJobsThisMonth:
+          type: integer
+        totalWorkers:
+          type: integer
+        revenueThisMonth:
+          type: number
+        conversionRate:
+          type: number
+        avgEstimateValue:
+          type: number
+      required:
+        - totalLeads
+        - newLeadsToday
+        - activeJobs
+        - completedJobsThisMonth
+        - totalWorkers
+        - revenueThisMonth
+        - conversionRate
+        - avgEstimateValue

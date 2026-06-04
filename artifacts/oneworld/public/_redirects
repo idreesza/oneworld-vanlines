@@ -1,0 +1,7 @@
+# Redirect old live-site URLs to their new equivalents
+/our-gallery          /gallery              301
+/how-it-works         /about                301
+/resources            /blog                 301
+
+# SPA fallback — all routes serve index.html
+/*                    /index.html           200
