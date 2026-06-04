@@ -1,0 +1,1 @@
+- [OneWorld API authorization](oneworld-api-authz.md) — API has no server-side requireAuth; admin/worker endpoints open by original design, user chose publish-as-is.
