@@ -4,7 +4,7 @@ import { MessageCircle, Menu, X, Phone, ArrowRight, Clock, Facebook } from "luci
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export default function PublicLayout({ children, raiseWhatsApp = false }: { children: React.ReactNode; raiseWhatsApp?: boolean }) {
   const { isSignedIn } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -220,7 +220,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
       {/* WhatsApp */}
       <a href="https://wa.me/16606677770" target="_blank" rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 w-14 h-14 bg-[#25D366] text-white rounded-full shadow-xl flex items-center justify-center hover:bg-[#20bd5a] hover:scale-110 transition-all z-50 group"
+        className={`fixed ${raiseWhatsApp ? "bottom-24 md:bottom-6" : "bottom-6"} right-6 w-14 h-14 bg-[#25D366] text-white rounded-full shadow-xl flex items-center justify-center hover:bg-[#20bd5a] hover:scale-110 transition-all z-50 group`}
         aria-label="Chat on WhatsApp">
         <MessageCircle className="w-6 h-6" />
         <span className="absolute right-16 bg-foreground text-background text-xs px-3 py-1.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
